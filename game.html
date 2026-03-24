@@ -1336,28 +1336,7 @@ function clampToOctagon(x, y, cx, cy, r) {
   return best||{x,y};
 }
 function drawOctaBorder(cx,cy,r) {
-  const svg=document.getElementById('octa-border');
-  console.log('drawOctaBorder: AW='+AW+' AH='+AH+' CX='+cx+' CY='+cy+' R='+r);
-  svg.style.position='absolute';
-  svg.style.left='0'; svg.style.top='0';
-  svg.style.width=AW+'px'; svg.style.height=AH+'px';
-  svg.setAttribute('viewBox',`0 0 ${AW} ${AH}`);
-  const pts=calcOctagon(cx,cy,r);
-  const poly=pts.map(p=>`${p.x},${p.y}`).join(' ');
-  svg.innerHTML=`
-    <defs>
-      <filter id="glow-rust"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    </defs>
-    <polygon points="${poly}" fill="none" stroke="#8B4513" stroke-width="3" filter="url(#glow-rust)" opacity="0.8"/>
-    <polygon points="${poly}" fill="none" stroke="#c86020" stroke-width="1" opacity="0.4"/>
-    ${pts.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="5" fill="#6b3010" stroke="#c86020" stroke-width="1"/>`).join('')}
-    <!-- rust texture lines -->
-    ${pts.map((p,i)=>{
-      const q=pts[(i+1)%8];
-      const mx=(p.x+q.x)/2, my=(p.y+q.y)/2;
-      return `<line x1="${mx-8}" y1="${my-3}" x2="${mx+8}" y2="${my+3}" stroke="#5a3010" stroke-width="1.5" opacity="0.5"/>`;
-    }).join('')}
-  `;
+  // Octagon border is now handled by clip-path, no SVG needed
 }
 // ============================================================
 // BATTLE START
@@ -1371,12 +1350,10 @@ function startBattle(fData) {
   fighters=[]; projectiles=[]; vortices=[]; clouds=[]; flameNodes=[]; singOrbs=[]; turretObjs=[]; elimination=[];
   if(rafId) cancelAnimationFrame(rafId);
   battleActive=true;
-  console.log('startBattle: window.innerWidth='+window.innerWidth+' SIDEBAR_W='+SIDEBAR_W);
   const arenaWrap=document.getElementById('arena-wrap');
   arenaWrap.style.width=(window.innerWidth-SIDEBAR_W)+'px';
   arenaWrap.style.height=window.innerHeight+'px';
   AW=window.innerWidth-SIDEBAR_W; AH=window.innerHeight;
-  console.log('After calc: AW='+AW);
   const clip=document.getElementById('arena-clip');
   clip.style.width=AW+'px'; clip.style.height=AH+'px';
   arena.style.width=AW+'px'; arena.style.height=AH+'px';
