@@ -1113,87 +1113,358 @@ const SPC = {
   singularity:    {name:'Singularity',     dmg:[24,36],  range:160, cd:11, type:'singularity',animKey:'singularity'},
 };
 // ============================================================
-// PIXEL SPRITE SYSTEM — 64x64 full-body sprites
+// ALIEN SPRITE SYSTEM — 64x64 canvas-drawn alien characters
 // ============================================================
 const SPRITE_CACHE = {};
-const ARCHETYPES = {
-  bruiser: { // wide, bulky torso, thick arms, heavy legs
-    head:[[6,0,4,4]],torso:[[4,4,8,6]],
-    armL:[[1,5,3,5]],armR:[[12,5,3,5]],
-    legL:[[4,10,3,5]],legR:[[9,10,3,5]],
-    extra:[]
+// per-archetype drawing functions; ctx is pre-flipped if needed
+const ALIEN_DRAW = {
+  bruiser(ctx,c,dk,lt,ac){
+    // wide hex body
+    ctx.fillStyle=dk; ctx.beginPath();
+    ctx.moveTo(14,18);ctx.lineTo(50,18);ctx.lineTo(60,36);ctx.lineTo(50,54);ctx.lineTo(14,54);ctx.lineTo(4,36);
+    ctx.closePath();ctx.fill();
+    ctx.fillStyle=c; ctx.beginPath();
+    ctx.ellipse(32,36,14,13,0,0,Math.PI*2);ctx.fill();
+    // single huge cyclopean eye
+    ctx.fillStyle='#111';ctx.beginPath();ctx.arc(32,28,9,0,Math.PI*2);ctx.fill();
+    ctx.shadowColor=ac;ctx.shadowBlur=12;
+    ctx.fillStyle=ac;ctx.beginPath();ctx.arc(32,28,6,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(29,25,2.5,0,Math.PI*2);ctx.fill();
+    // fists
+    ctx.fillStyle=dk;
+    ctx.beginPath();ctx.roundRect(2,30,12,16,4);ctx.fill();
+    ctx.beginPath();ctx.roundRect(50,30,12,16,4);ctx.fill();
+    ctx.fillStyle=lt;
+    [5,9,13].forEach(x=>{ctx.beginPath();ctx.arc(x,46,2.5,0,Math.PI*2);ctx.fill();});
+    [51,55,59].forEach(x=>{ctx.beginPath();ctx.arc(x,46,2.5,0,Math.PI*2);ctx.fill();});
+    // stumpy legs
+    ctx.fillStyle=dk;
+    ctx.beginPath();ctx.roundRect(18,52,10,11,3);ctx.fill();
+    ctx.beginPath();ctx.roundRect(36,52,10,11,3);ctx.fill();
   },
-  sniper: { // thin, tall, long arms, scope eye
-    head:[[6,0,4,3]],torso:[[5,3,6,5]],
-    armL:[[2,4,3,4]],armR:[[11,4,3,6]],
-    legL:[[5,8,2,6]],legR:[[9,8,2,6]],
-    extra:[[12,3,3,1]] // scope/rifle
+  sniper(ctx,c,dk,lt,ac){
+    // thin tall body
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(26,22,12,30,3);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(28,24,8,26,2);ctx.fill();
+    // elongated oval head
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,13,8,12,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,13,6,10,0,0,Math.PI*2);ctx.fill();
+    // scope eye
+    ctx.shadowColor=ac;ctx.shadowBlur=10;
+    ctx.fillStyle=ac;ctx.beginPath();ctx.ellipse(32,10,3,5,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(31,8,1.5,0,Math.PI*2);ctx.fill();
+    // rifle arm
+    ctx.fillStyle='#445';ctx.beginPath();ctx.roundRect(38,28,24,5,2);ctx.fill();
+    ctx.fillStyle='#222';ctx.beginPath();ctx.roundRect(59,26,4,9,1);ctx.fill();
+    // scope on rifle
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(46,25,8,4,1);ctx.fill();
+    // left arm
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(14,28,13,4,2);ctx.fill();
+    // thin legs
+    ctx.fillStyle=dk;
+    ctx.beginPath();ctx.roundRect(27,51,5,12,2);ctx.fill();
+    ctx.beginPath();ctx.roundRect(32,51,5,12,2);ctx.fill();
   },
-  psychic: { // floaty, big head, tendrils, no legs
-    head:[[5,0,6,5]],torso:[[6,5,4,4]],
-    armL:[[3,5,3,5]],armR:[[10,5,3,5]],
-    legL:[[5,9,2,5]],legR:[[9,9,2,5]],
-    extra:[[7,0,2,1]] // third eye
+  psychic(ctx,c,dk,lt,ac){
+    // translucent brain dome
+    ctx.fillStyle=c+'33';ctx.beginPath();ctx.arc(32,22,20,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=c;ctx.lineWidth=2;ctx.beginPath();ctx.arc(32,22,20,0,Math.PI*2);ctx.stroke();
+    // brain folds
+    ctx.strokeStyle=lt;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(26,17,7,0.4,Math.PI-0.4);ctx.stroke();
+    ctx.beginPath();ctx.arc(38,17,7,0.4,Math.PI-0.4);ctx.stroke();
+    ctx.beginPath();ctx.arc(32,24,5,Math.PI+0.4,2*Math.PI-0.4);ctx.stroke();
+    // 3 glowing eyes
+    [-9,0,9].forEach(dx=>{
+      ctx.shadowColor=ac;ctx.shadowBlur=14;
+      ctx.fillStyle=ac;ctx.beginPath();ctx.arc(32+dx,26,3.5,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;ctx.fillStyle='#000';ctx.beginPath();ctx.arc(32+dx+0.5,26,1.5,0,Math.PI*2);ctx.fill();
+    });
+    // small hovering core body
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,48,9,11,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,48,6,8,0,0,Math.PI*2);ctx.fill();
+    // tendrils
+    ctx.strokeStyle=c;ctx.lineWidth=2;ctx.lineCap='round';
+    [[-14,42],[-10,58],[10,58],[14,42]].forEach(([dx,dy])=>{
+      ctx.beginPath();ctx.moveTo(32,52);ctx.quadraticCurveTo(32+dx*0.4,dy-8,32+dx,dy);ctx.stroke();
+    });
   },
-  beast: { // hunched, claws, tail, digitigrade legs
-    head:[[6,1,5,3]],torso:[[5,4,6,5]],
-    armL:[[2,4,3,5]],armR:[[11,4,3,5]],
-    legL:[[4,9,3,5]],legR:[[9,9,3,5]],
-    extra:[[11,7,4,2]] // tail
+  beast(ctx,c,dk,lt,ac){
+    // spiny back
+    ctx.fillStyle=lt;
+    [[26,20],[30,15],[35,16],[40,21]].forEach(([x,y])=>{
+      ctx.beginPath();ctx.moveTo(x-3,30);ctx.lineTo(x,y);ctx.lineTo(x+3,30);ctx.closePath();ctx.fill();
+    });
+    // hunched body
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(34,40,18,14,-0.2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,38,14,11,-0.2,0,Math.PI*2);ctx.fill();
+    // low forward head
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(19,28,13,9,0.35,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(18,27,11,7,0.35,0,Math.PI*2);ctx.fill();
+    // fangs
+    ctx.fillStyle='#dde';
+    ctx.beginPath();ctx.moveTo(12,31);ctx.lineTo(10,39);ctx.lineTo(15,33);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(19,31);ctx.lineTo(17,39);ctx.lineTo(22,33);ctx.closePath();ctx.fill();
+    // glowing red eyes
+    ctx.shadowColor='#ff3300';ctx.shadowBlur=10;ctx.fillStyle='#ff3300';
+    ctx.beginPath();ctx.arc(14,24,3.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(23,23,3.5,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // claw arm
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(44,33,13,8,3);ctx.fill();
+    ctx.fillStyle=lt;
+    [46,50,54,58].forEach(x=>{ctx.beginPath();ctx.moveTo(x,41);ctx.lineTo(x-1,48);ctx.lineTo(x+2,48);ctx.closePath();ctx.fill();});
+    // digitigrade legs
+    ctx.fillStyle=dk;
+    ctx.beginPath();ctx.roundRect(22,50,9,10,3);ctx.fill();
+    ctx.beginPath();ctx.roundRect(34,50,9,10,3);ctx.fill();
+    ctx.fillStyle=c;
+    ctx.beginPath();ctx.roundRect(18,57,14,5,2);ctx.fill();
+    ctx.beginPath();ctx.roundRect(32,57,14,5,2);ctx.fill();
   },
-  engineer: { // boxy, mechanical, antenna
-    head:[[6,0,4,4]],torso:[[4,4,8,5]],
-    armL:[[1,5,3,4]],armR:[[12,5,3,4]],
-    legL:[[5,9,3,5]],legR:[[8,9,3,5]],
-    extra:[[7,0,1,1]] // antenna
+  engineer(ctx,c,dk,lt,ac){
+    // boxy head with visor
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(22,4,20,16,2);ctx.fill();
+    ctx.fillStyle='#223';ctx.beginPath();ctx.roundRect(24,8,16,8,1);ctx.fill();
+    ctx.shadowColor=ac;ctx.shadowBlur=8;
+    ctx.fillStyle=ac;ctx.beginPath();ctx.roundRect(25,9,6,6,1);ctx.fill();
+    ctx.beginPath();ctx.roundRect(33,9,6,6,1);ctx.fill();
+    ctx.shadowBlur=0;
+    // antenna
+    ctx.strokeStyle=lt;ctx.lineWidth=2;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(32,4);ctx.lineTo(32,0);ctx.stroke();
+    ctx.fillStyle=ac;ctx.beginPath();ctx.arc(32,0,2.5,0,Math.PI*2);ctx.fill();
+    // boxy body
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(20,20,24,22,2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(22,22,20,18,1);ctx.fill();
+    // panel lines
+    ctx.strokeStyle=dk;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(26,26);ctx.lineTo(38,26);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(26,32);ctx.lineTo(38,32);ctx.stroke();
+    // wrench arm (right)
+    ctx.fillStyle='#556';ctx.beginPath();ctx.roundRect(44,22,14,6,2);ctx.fill();
+    ctx.fillStyle='#778';ctx.beginPath();ctx.roundRect(55,19,7,12,2);ctx.fill();
+    // left arm
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(8,22,13,6,2);ctx.fill();
+    // legs
+    ctx.fillStyle=dk;
+    ctx.beginPath();ctx.roundRect(22,42,9,12,2);ctx.fill();
+    ctx.beginPath();ctx.roundRect(33,42,9,12,2);ctx.fill();
+    ctx.fillStyle='#556';
+    ctx.beginPath();ctx.roundRect(20,52,11,8,2);ctx.fill();
+    ctx.beginPath();ctx.roundRect(33,52,11,8,2);ctx.fill();
   },
-  assassin: { // hooded, sleek, thin, blades
-    head:[[5,0,5,4]],torso:[[5,4,5,4]],
-    armL:[[2,4,3,5]],armR:[[10,4,3,5]],
-    legL:[[5,8,2,6]],legR:[[8,8,2,6]],
-    extra:[[1,6,2,4]] // blade
+  assassin(ctx,c,dk,lt,ac){
+    // dark hooded cloak
+    ctx.fillStyle=dk+'cc';
+    ctx.beginPath();ctx.moveTo(18,8);ctx.lineTo(46,8);ctx.lineTo(52,60);ctx.lineTo(12,60);ctx.closePath();ctx.fill();
+    ctx.fillStyle=c+'44';
+    ctx.beginPath();ctx.moveTo(20,10);ctx.lineTo(44,10);ctx.lineTo(50,58);ctx.lineTo(14,58);ctx.closePath();ctx.fill();
+    // hood peak
+    ctx.fillStyle=dk;ctx.beginPath();ctx.moveTo(24,8);ctx.lineTo(32,0);ctx.lineTo(40,8);ctx.closePath();ctx.fill();
+    // glowing slit eyes
+    ctx.shadowColor=ac;ctx.shadowBlur=14;ctx.fillStyle=ac;
+    ctx.beginPath();ctx.ellipse(27,22,4,2,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(37,22,4,2,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // blade arm
+    ctx.fillStyle='#aabbcc';
+    ctx.beginPath();ctx.moveTo(8,32);ctx.lineTo(4,56);ctx.lineTo(12,32);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#ddeeff';
+    ctx.beginPath();ctx.moveTo(9,36);ctx.lineTo(6,54);ctx.lineTo(10,38);ctx.closePath();ctx.fill();
+    // second blade hint
+    ctx.fillStyle='#aabbcc';
+    ctx.beginPath();ctx.moveTo(52,36);ctx.lineTo(56,52);ctx.lineTo(60,36);ctx.closePath();ctx.fill();
   },
-  tank: { // massive, heavy armor, small head, wide body
-    head:[[6,0,4,3]],torso:[[3,3,10,6]],
-    armL:[[0,4,3,5]],armR:[[13,4,3,5]],
-    legL:[[4,9,3,5]],legR:[[9,9,3,5]],
-    extra:[[4,3,8,1]] // shoulder plate
+  tank(ctx,c,dk,lt,ac){
+    // massive armored dome body
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,38,28,22,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,38,24,18,0,0,Math.PI*2);ctx.fill();
+    // armor plating lines
+    ctx.strokeStyle=dk;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(32,38,18,Math.PI*0.1,Math.PI*0.9);ctx.stroke();
+    ctx.beginPath();ctx.arc(32,38,12,Math.PI*0.2,Math.PI*0.8);ctx.stroke();
+    // small head / visor slit
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,16,12,8,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#112';ctx.beginPath();ctx.roundRect(22,12,20,7,1);ctx.fill();
+    ctx.shadowColor=ac;ctx.shadowBlur=8;ctx.fillStyle=ac;
+    ctx.beginPath();ctx.roundRect(24,14,6,4,1);ctx.fill();
+    ctx.beginPath();ctx.roundRect(34,14,6,4,1);ctx.fill();
+    ctx.shadowBlur=0;
+    // shoulder spikes
+    ctx.fillStyle=lt;
+    ctx.beginPath();ctx.moveTo(4,28);ctx.lineTo(0,20);ctx.lineTo(8,26);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(60,28);ctx.lineTo(64,20);ctx.lineTo(56,26);ctx.closePath();ctx.fill();
+    // stubby feet
+    ctx.fillStyle=dk;
+    ctx.beginPath();ctx.roundRect(18,56,12,8,3);ctx.fill();
+    ctx.beginPath();ctx.roundRect(34,56,12,8,3);ctx.fill();
   },
-  mage: { // robed, staff, flowing energy
-    head:[[6,0,4,4]],torso:[[5,4,6,5]],
-    armL:[[2,5,3,4]],armR:[[11,5,3,4]],
-    legL:[[5,9,3,5]],legR:[[8,9,3,5]],
-    extra:[[1,2,2,7]] // staff
+  mage(ctx,c,dk,lt,ac){
+    // flowing robe
+    ctx.fillStyle=c+'88';
+    ctx.beginPath();ctx.moveTo(18,24);ctx.lineTo(46,24);ctx.lineTo(52,62);ctx.lineTo(12,62);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=lt;ctx.lineWidth=1.5;ctx.stroke();
+    // swirling energy
+    ctx.strokeStyle=ac;ctx.lineWidth=2;ctx.globalAlpha=0.6;
+    ctx.beginPath();ctx.arc(32,38,14,0,Math.PI*1.5);ctx.stroke();
+    ctx.beginPath();ctx.arc(32,38,10,Math.PI,Math.PI*2.5);ctx.stroke();
+    ctx.globalAlpha=1;
+    // head with glowing crown
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,14,10,11,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,14,8,9,0,0,Math.PI*2);ctx.fill();
+    // crown gems
+    ctx.shadowColor=ac;ctx.shadowBlur=10;ctx.fillStyle=ac;
+    [26,32,38].forEach(x=>{ctx.beginPath();ctx.arc(x,6,2.5,0,Math.PI*2);ctx.fill();});
+    ctx.shadowBlur=0;
+    // single all-seeing eye
+    ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(32,15,4,5,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowColor=ac;ctx.shadowBlur=8;ctx.fillStyle=ac;ctx.beginPath();ctx.ellipse(32,15,2.5,3.5,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // staff
+    ctx.fillStyle='#8866aa';ctx.strokeStyle='#aaccff';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(10,20);ctx.lineTo(10,60);ctx.stroke();
+    ctx.shadowColor='#aaccff';ctx.shadowBlur=14;
+    ctx.fillStyle='#ccddff';ctx.beginPath();ctx.arc(10,18,5,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
   },
-  insectoid: { // multiple limbs, antennae, compact
-    head:[[6,0,4,3]],torso:[[5,3,6,5]],
-    armL:[[2,3,3,3]],armR:[[11,3,3,3]],
-    legL:[[4,8,2,5]],legR:[[10,8,2,5]],
-    extra:[[3,5,2,4],[11,5,2,4],[6,0,1,2],[9,0,1,2]] // extra arms + antennae
+  insectoid(ctx,c,dk,lt,ac){
+    // carapace body (diamond-ish)
+    ctx.fillStyle=dk;ctx.beginPath();
+    ctx.moveTo(32,14);ctx.lineTo(52,32);ctx.lineTo(46,52);ctx.lineTo(18,52);ctx.lineTo(12,32);ctx.closePath();ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();
+    ctx.moveTo(32,17);ctx.lineTo(49,32);ctx.lineTo(44,50);ctx.lineTo(20,50);ctx.lineTo(15,32);ctx.closePath();ctx.fill();
+    // carapace line
+    ctx.strokeStyle=lt;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(32,17);ctx.lineTo(32,50);ctx.stroke();
+    // head with compound eyes
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,10,10,8,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,10,8,6,0,0,Math.PI*2);ctx.fill();
+    // compound eyes (multiple dots)
+    [[23,8],[26,6],[30,5],[34,5],[38,6],[41,8]].forEach(([x,y])=>{
+      ctx.shadowColor=ac;ctx.shadowBlur=6;ctx.fillStyle=ac;
+      ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();
+    });
+    ctx.shadowBlur=0;
+    // antennae
+    ctx.strokeStyle=lt;ctx.lineWidth=1.5;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(27,5);ctx.lineTo(18,0);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(37,5);ctx.lineTo(46,0);ctx.stroke();
+    // 6 limbs
+    ctx.strokeStyle=dk;ctx.lineWidth=3;
+    [[-20,28],[-22,36],[-18,44]].forEach(([dx,dy])=>{
+      ctx.beginPath();ctx.moveTo(14,32);ctx.lineTo(14+dx,dy);ctx.stroke();
+    });
+    [[20,28],[22,36],[18,44]].forEach(([dx,dy])=>{
+      ctx.beginPath();ctx.moveTo(50,32);ctx.lineTo(50+dx,dy);ctx.stroke();
+    });
+    // mandibles
+    ctx.fillStyle=lt;
+    ctx.beginPath();ctx.moveTo(27,14);ctx.lineTo(20,20);ctx.lineTo(24,16);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(37,14);ctx.lineTo(44,20);ctx.lineTo(40,16);ctx.closePath();ctx.fill();
   },
-  berserker: { // wild, spiky, aggressive stance
-    head:[[6,0,4,4]],torso:[[4,4,8,5]],
-    armL:[[1,4,3,5]],armR:[[12,4,3,5]],
-    legL:[[4,9,3,5]],legR:[[9,9,3,5]],
-    extra:[[5,0,1,2],[10,0,1,2],[4,1,1,2],[11,1,1,2]] // spikes
+  berserker(ctx,c,dk,lt,ac){
+    // wild spiky silhouette
+    ctx.fillStyle=dk;
+    [[14,2],[32,0],[50,2],[6,16],[58,16],[4,36],[60,36],[10,54],[54,54]].forEach(([x,y])=>{
+      ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();
+    });
+    // main body
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,36,16,18,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,36,14,16,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,36,10,12,0,0,Math.PI*2);ctx.fill();
+    // head
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,16,11,10,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,16,9,8,0,0,Math.PI*2);ctx.fill();
+    // screaming mouth
+    ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(32,20,5,4,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#cc0000';ctx.beginPath();ctx.ellipse(32,21,3.5,2.5,0,0,Math.PI*2);ctx.fill();
+    // wild eyes
+    ctx.shadowColor='#ffaa00';ctx.shadowBlur=10;ctx.fillStyle='#ffaa00';
+    ctx.beginPath();ctx.arc(26,12,3.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(38,12,3.5,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // spiky arms
+    ctx.strokeStyle=dk;ctx.lineWidth=5;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(18,30);ctx.lineTo(4,22);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(46,30);ctx.lineTo(60,22);ctx.stroke();
+    ctx.lineWidth=2;ctx.strokeStyle=lt;
+    ctx.beginPath();ctx.moveTo(18,30);ctx.lineTo(4,22);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(46,30);ctx.lineTo(60,22);ctx.stroke();
   },
-  gunner: { // medium build, big gun arm
-    head:[[6,0,4,4]],torso:[[5,4,6,5]],
-    armL:[[2,5,3,4]],armR:[[11,4,4,5]],
-    legL:[[5,9,3,5]],legR:[[8,9,3,5]],
-    extra:[[14,4,2,3]] // gun barrel
+  gunner(ctx,c,dk,lt,ac){
+    // compact body
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(20,22,24,26,4);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(22,24,20,22,3);ctx.fill();
+    // head
+    ctx.fillStyle=dk;ctx.beginPath();ctx.ellipse(32,14,11,10,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(32,14,9,8,0,0,Math.PI*2);ctx.fill();
+    // targeting reticle eye
+    ctx.shadowColor=ac;ctx.shadowBlur=12;ctx.fillStyle=ac;
+    ctx.beginPath();ctx.arc(32,13,6,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;ctx.strokeStyle='#000';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(32,13,4,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(28,13);ctx.lineTo(36,13);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(32,9);ctx.lineTo(32,17);ctx.stroke();
+    ctx.fillStyle='#000';ctx.beginPath();ctx.arc(32,13,1.5,0,Math.PI*2);ctx.fill();
+    // MASSIVE cannon arm (right)
+    ctx.fillStyle='#445566';ctx.beginPath();ctx.roundRect(44,24,18,12,3);ctx.fill();
+    ctx.fillStyle='#556677';ctx.beginPath();ctx.roundRect(60,22,4,16,2);ctx.fill();
+    ctx.shadowColor=ac;ctx.shadowBlur=10;ctx.fillStyle=ac+'66';
+    ctx.beginPath();ctx.arc(62,30,5,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    // left arm
+    ctx.fillStyle=dk;ctx.beginPath();ctx.roundRect(10,26,11,6,2);ctx.fill();
+    // legs
+    ctx.fillStyle=dk;
+    ctx.beginPath();ctx.roundRect(22,47,9,13,2);ctx.fill();
+    ctx.beginPath();ctx.roundRect(33,47,9,13,2);ctx.fill();
   },
-  charger: { // streamlined, leaning forward, speed lines
-    head:[[7,0,4,3]],torso:[[5,3,6,5]],
-    armL:[[2,4,3,4]],armR:[[11,4,3,4]],
-    legL:[[4,8,3,6]],legR:[[9,8,3,6]],
-    extra:[[3,5,2,1],[2,6,2,1]] // speed trail
+  charger(ctx,c,dk,lt,ac){
+    // speed trail lines (left side)
+    ctx.strokeStyle=c+'44';ctx.lineWidth=2;ctx.lineCap='round';
+    [20,28,36,44].forEach(y=>{
+      ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(20,y);ctx.stroke();
+    });
+    // streamlined teardrop body
+    ctx.fillStyle=dk;ctx.beginPath();
+    ctx.moveTo(52,10);ctx.quadraticCurveTo(62,32,52,54);ctx.lineTo(16,54);ctx.quadraticCurveTo(8,32,16,10);ctx.closePath();ctx.fill();
+    ctx.fillStyle=c;ctx.beginPath();
+    ctx.moveTo(50,13);ctx.quadraticCurveTo(58,32,50,51);ctx.lineTo(18,51);ctx.quadraticCurveTo(10,32,18,13);ctx.closePath();ctx.fill();
+    // visor stripe
+    ctx.fillStyle='#112233';ctx.beginPath();ctx.roundRect(20,24,24,10,2);ctx.fill();
+    ctx.shadowColor=ac;ctx.shadowBlur=8;ctx.fillStyle=ac;
+    ctx.beginPath();ctx.roundRect(22,26,20,6,1);ctx.fill();
+    ctx.shadowBlur=0;
+    // speed fins
+    ctx.fillStyle=lt;
+    ctx.beginPath();ctx.moveTo(52,14);ctx.lineTo(62,8);ctx.lineTo(58,18);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(52,50);ctx.lineTo(62,56);ctx.lineTo(58,46);ctx.closePath();ctx.fill();
+    // legs
+    ctx.fillStyle=dk;
+    ctx.beginPath();ctx.roundRect(22,52,9,11,2);ctx.fill();
+    ctx.beginPath();ctx.roundRect(33,52,9,11,2);ctx.fill();
   },
-  blob: { // amorphous, eyes, tendrils
-    head:[[5,1,6,4]],torso:[[4,5,8,5]],
-    armL:[[2,5,2,4]],armR:[[12,5,2,4]],
-    legL:[[4,10,3,4]],legR:[[9,10,3,4]],
-    extra:[[6,2,1,1],[9,2,1,1]] // eyes
+  blob(ctx,c,dk,lt,ac){
+    // wobbly amorphous body
+    ctx.fillStyle=c+'bb';ctx.beginPath();
+    ctx.moveTo(32,6);ctx.bezierCurveTo(56,4,62,20,58,34);ctx.bezierCurveTo(62,50,50,62,32,60);
+    ctx.bezierCurveTo(14,62,2,50,6,34);ctx.bezierCurveTo(2,20,8,4,32,6);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=lt;ctx.lineWidth=2;ctx.stroke();
+    // drip tentacles
+    ctx.fillStyle=c+'99';
+    [[20,60,14,8],[32,60,32,10],[44,60,50,8]].forEach(([sx,sy,ex,ey])=>{
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.quadraticCurveTo((sx+ex)/2,sy+12,ex,ey+70);
+      ctx.quadraticCurveTo(ex+4,ey+70,ex+4,ey+60);ctx.quadraticCurveTo((sx+ex)/2+4,sy+12,sx+6,sy);
+      ctx.closePath();ctx.fill();
+    });
+    // 3 floating eyes at different heights
+    [[22,24],[34,18],[46,28]].forEach(([x,y],i)=>{
+      ctx.fillStyle='#000';ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fill();
+      ctx.shadowColor=ac;ctx.shadowBlur=12;ctx.fillStyle=ac;
+      ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x-1.5,y-1.5,1.8,0,Math.PI*2);ctx.fill();
+    });
   },
 };
 function getArchetype(f) {
@@ -1220,57 +1491,9 @@ function renderSprite(archetype, colors, facing) {
   const c=document.createElement('canvas');
   c.width=64; c.height=64;
   const ctx=c.getContext('2d');
-  const arch=ARCHETYPES[archetype]||ARCHETYPES.bruiser;
-  const S=4; // scale factor (16x16 grid → 64x64)
-  const flip=facing<0;
-  const parts=[
-    {rects:arch.head, col:colors[0]||'#888'},       // head/skin
-    {rects:arch.torso, col:colors[1]||'#666'},       // torso/armor
-    {rects:arch.armL, col:colors[1]||'#666'},        // arms same as torso
-    {rects:arch.armR, col:colors[1]||'#666'},
-    {rects:arch.legL, col:colors[2]||'#555'},        // legs
-    {rects:arch.legR, col:colors[2]||'#555'},
-    {rects:arch.extra, col:colors[3]||colors[0]||'#aaa'}, // extras/weapons
-  ];
-  if(flip) { ctx.translate(64,0); ctx.scale(-1,1); }
-  // Draw fill pass
-  parts.forEach(p=>{
-    p.rects.forEach(r=>{
-      const px=r[0]*S, py=r[1]*S, pw=r[2]*S, ph=r[3]*S;
-      // base fill
-      ctx.fillStyle=p.col;
-      ctx.fillRect(px,py,pw,ph);
-      // lighter top highlight (1 pixel row)
-      ctx.fillStyle=shadeColor(p.col,50);
-      ctx.fillRect(px,py,pw,S);
-      // darker bottom shadow (1 pixel row)
-      ctx.fillStyle=shadeColor(p.col,-50);
-      ctx.fillRect(px,py+ph-S,pw,S);
-      // dark left edge
-      ctx.fillStyle='rgba(0,0,0,0.4)';
-      ctx.fillRect(px,py,1,ph);
-      // dark right edge
-      ctx.fillRect(px+pw-1,py,1,ph);
-    });
-  });
-  // Black outline around all parts (1px)
-  ctx.strokeStyle='rgba(0,0,0,0.8)';
-  ctx.lineWidth=1;
-  parts.forEach(p=>{
-    p.rects.forEach(r=>{
-      ctx.strokeRect(r[0]*S+0.5, r[1]*S+0.5, r[2]*S-1, r[3]*S-1);
-    });
-  });
-  // Eyes on head
-  const h=arch.head[0];
-  const eyeY=(h[1]+1)*S;
-  ctx.fillStyle='#ffffff';
-  ctx.fillRect((h[0]+1)*S, eyeY, S, S);
-  ctx.fillRect((h[0]+h[2]-2)*S, eyeY, S, S);
-  // glowing eye color
-  ctx.fillStyle=colors[3]||'#00e5ff';
-  ctx.fillRect((h[0]+1)*S+1, eyeY+1, S-2, S-2);
-  ctx.fillRect((h[0]+h[2]-2)*S+1, eyeY+1, S-2, S-2);
+  if(facing<0){ctx.translate(64,0);ctx.scale(-1,1);}
+  const fn=ALIEN_DRAW[archetype]||ALIEN_DRAW.bruiser;
+  fn(ctx, colors[0]||'#888', colors[1]||'#555', colors[2]||'#aaa', colors[3]||'#00e5ff');
   SPRITE_CACHE[key]=c;
   return c;
 }
@@ -1282,12 +1505,10 @@ function shadeColor(col,amt) {
 function getSpriteColors(data) {
   const base=data.color;
   const r=parseInt(base.slice(1,3),16), g=parseInt(base.slice(3,5),16), b=parseInt(base.slice(5,7),16);
-  return [
-    base,                                               // head/skin
-    shadeColor(base,-40),                               // torso/armor (darker)
-    shadeColor(base,-70),                               // legs (darkest)
-    '#'+[Math.min(255,r+60),Math.min(255,g+60),Math.min(255,b+60)].map(v=>v.toString(16).padStart(2,'0')).join('') // weapon/extra (lighter)
-  ];
+  const lt='#'+[Math.min(255,r+80),Math.min(255,g+80),Math.min(255,b+80)].map(v=>v.toString(16).padStart(2,'0')).join('');
+  // eye/glow color: complementary hue shift
+  const ec='#'+[Math.min(255,255-r+60),Math.min(255,b+100),Math.min(255,g+80)].map(v=>v.toString(16).padStart(2,'0')).join('');
+  return [base, shadeColor(base,-45), lt, ec];
 }
 const FIGHTERS = [
   {name:'Krath',  desc:'Massive rocky bruiser from a high gravity moon',        hp:350,color:'#8B6030',emoji:'🪨',reg:'smash',       spc:'gravity_slam'},
