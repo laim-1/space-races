@@ -1231,28 +1231,45 @@ function renderSprite(archetype, colors, facing) {
     {rects:arch.legR, col:colors[2]||'#555'},
     {rects:arch.extra, col:colors[3]||colors[0]||'#aaa'}, // extras/weapons
   ];
-  if(flip) ctx.translate(64,0), ctx.scale(-1,1);
+  if(flip) { ctx.translate(64,0); ctx.scale(-1,1); }
+  // Draw fill pass
   parts.forEach(p=>{
-    ctx.fillStyle=p.col;
     p.rects.forEach(r=>{
-      ctx.fillRect(r[0]*S, r[1]*S, r[2]*S, r[3]*S);
-      // pixel art shading - darker bottom edge
-      ctx.fillStyle=shadeColor(p.col,-30);
-      ctx.fillRect(r[0]*S, (r[1]+r[3]-1)*S, r[2]*S, S);
-      // lighter top edge
-      ctx.fillStyle=shadeColor(p.col,30);
-      ctx.fillRect(r[0]*S, r[1]*S, r[2]*S, S);
+      const px=r[0]*S, py=r[1]*S, pw=r[2]*S, ph=r[3]*S;
+      // base fill
       ctx.fillStyle=p.col;
+      ctx.fillRect(px,py,pw,ph);
+      // lighter top highlight (1 pixel row)
+      ctx.fillStyle=shadeColor(p.col,50);
+      ctx.fillRect(px,py,pw,S);
+      // darker bottom shadow (1 pixel row)
+      ctx.fillStyle=shadeColor(p.col,-50);
+      ctx.fillRect(px,py+ph-S,pw,S);
+      // dark left edge
+      ctx.fillStyle='rgba(0,0,0,0.4)';
+      ctx.fillRect(px,py,1,ph);
+      // dark right edge
+      ctx.fillRect(px+pw-1,py,1,ph);
+    });
+  });
+  // Black outline around all parts (1px)
+  ctx.strokeStyle='rgba(0,0,0,0.8)';
+  ctx.lineWidth=1;
+  parts.forEach(p=>{
+    p.rects.forEach(r=>{
+      ctx.strokeRect(r[0]*S+0.5, r[1]*S+0.5, r[2]*S-1, r[3]*S-1);
     });
   });
   // Eyes on head
   const h=arch.head[0];
-  ctx.fillStyle='#fff';
-  ctx.fillRect((h[0]+1)*S, (h[1]+1)*S, S, S);
-  ctx.fillRect((h[0]+h[2]-2)*S, (h[1]+1)*S, S, S);
-  ctx.fillStyle='#000';
-  ctx.fillRect((h[0]+1)*S+1, (h[1]+1)*S+1, S-2, S-2);
-  ctx.fillRect((h[0]+h[2]-2)*S+1, (h[1]+1)*S+1, S-2, S-2);
+  const eyeY=(h[1]+1)*S;
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect((h[0]+1)*S, eyeY, S, S);
+  ctx.fillRect((h[0]+h[2]-2)*S, eyeY, S, S);
+  // glowing eye color
+  ctx.fillStyle=colors[3]||'#00e5ff';
+  ctx.fillRect((h[0]+1)*S+1, eyeY+1, S-2, S-2);
+  ctx.fillRect((h[0]+h[2]-2)*S+1, eyeY+1, S-2, S-2);
   SPRITE_CACHE[key]=c;
   return c;
 }
@@ -1658,12 +1675,13 @@ function mkFighter(data, spawnX, spawnY) {
   el.style.cssText=`left:${x}px;top:${y}px;transform:translate(-50%,-50%)`;
   const arch=getArchetype(data);
   const spriteColors=getSpriteColors(data);
-  const spriteCanvas=renderSprite(arch, spriteColors, 1);
   const bodyDiv=document.createElement('div');
   bodyDiv.className='fighter-body';
   bodyDiv.style.cssText=`background:${data.color}18;border-color:${data.color};box-shadow:0 0 12px ${data.color}66,0 2px 8px rgba(0,0,0,0.8)`;
-  const spriteEl=spriteCanvas.cloneNode(true);
-  spriteEl.style.cssText='width:64px;height:64px;image-rendering:pixelated';
+  const spriteEl=document.createElement('canvas');
+  spriteEl.width=64; spriteEl.height=64;
+  spriteEl.style.cssText='width:64px;height:64px;image-rendering:pixelated;display:block';
+  spriteEl.getContext('2d').drawImage(renderSprite(arch, spriteColors, 1), 0, 0);
   bodyDiv.appendChild(spriteEl);
   el.innerHTML=`
     <div class="fighter-label">${data.name}</div>
