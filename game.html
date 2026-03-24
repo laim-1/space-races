@@ -1340,6 +1340,7 @@ function drawOctaBorder(cx,cy,r) {
   svg.style.position='absolute';
   svg.style.left='0'; svg.style.top='0';
   svg.style.width=AW+'px'; svg.style.height=AH+'px';
+  svg.setAttribute('viewBox',`0 0 ${AW} ${AH}`);
   const pts=calcOctagon(cx,cy,r);
   const poly=pts.map(p=>`${p.x},${p.y}`).join(' ');
   svg.innerHTML=`
