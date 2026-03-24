@@ -291,11 +291,10 @@ body {
 #arena {
   position:absolute; inset:0;
 }
-/* Octagon border drawn via clip-path on a pseudo */
+/* Octagon border drawn via canvas */
 #octa-border {
   position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
+  top:0; left:0;
   pointer-events:none;
   z-index:6;
 }
@@ -966,7 +965,7 @@ body {
     <div id="arena-clip">
       <div id="arena"></div>
     </div>
-    <svg id="octa-border" style="pointer-events:none;z-index:6"></svg>
+    <canvas id="octa-border" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:6"></canvas>
     <div id="battle-hud">
       <div class="hud-pill" id="alive-pill">⚙ 0 Alive</div>
       <button class="btn btn-ghost" onclick="endBattle()" style="padding:0.25rem 0.6rem;font-size:0.55rem">✕ Quit</button>
@@ -1335,6 +1334,45 @@ function clampToOctagon(x, y, cx, cy, r) {
   }
   return best||{x,y};
 }
+function drawOctaBorder() {
+  const canvas=document.getElementById('octa-border');
+  const wrap=document.getElementById('arena-wrap');
+  const w=wrap.clientWidth, h=wrap.clientHeight;
+  canvas.width=w; canvas.height=h;
+  const cx=w/2, cy=h/2, r=Math.min(w,h)*0.46;
+  const pts=calcOctagon(cx,cy,r);
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+  // Glow
+  ctx.shadowColor='#8B4513';
+  ctx.shadowBlur=12;
+  ctx.strokeStyle='#8B4513';
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  pts.forEach((p,i)=>{i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});
+  ctx.closePath();
+  ctx.stroke();
+  // Inner line
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='#c86020';
+  ctx.lineWidth=1;
+  ctx.globalAlpha=0.4;
+  ctx.beginPath();
+  pts.forEach((p,i)=>{i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});
+  ctx.closePath();
+  ctx.stroke();
+  ctx.globalAlpha=1;
+  // Corner dots
+  pts.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,5,0,Math.PI*2);
+    ctx.fillStyle='#6b3010';
+    ctx.strokeStyle='#c86020';
+    ctx.lineWidth=1;
+    ctx.fill();
+    ctx.stroke();
+  });
+}
 // ============================================================
 // BATTLE START
 // ============================================================
@@ -1356,8 +1394,18 @@ function startBattle(fData) {
   arena.style.width=AW+'px'; arena.style.height=AH+'px';
   clip.style.left='0'; clip.style.top='0';
   clip.style.transform='none';
+  // Draw octagon border after layout settles
+  setTimeout(()=>drawOctaBorder(),100);
   buildSidebar(fData);
-  fData.forEach(d=>{ const f=mkFighter(d); fighters.push(f); });
+  // Spawn fighters in octagon corners
+  const spawnCX=AW/2, spawnCY=AH/2, spawnR=Math.min(AW,AH)*0.35;
+  fData.forEach((d,i)=>{
+    const angle=(i/fData.length)*Math.PI*2 - Math.PI/2;
+    const x=spawnCX+Math.cos(angle)*spawnR;
+    const y=spawnCY+Math.sin(angle)*spawnR;
+    const f=mkFighter(d,x,y);
+    fighters.push(f);
+  });
   lastT=performance.now();
   rafId=requestAnimationFrame(loop);
   updateHUD();
@@ -1379,10 +1427,10 @@ function buildSidebar(fData) {
     sb.appendChild(row);
   });
 }
-function mkFighter(data) {
+function mkFighter(data, spawnX, spawnY) {
   const CX=AW/2, CY=AH/2, R=Math.min(AW,AH)*0.38;
-  const angle=Math.random()*Math.PI*2, dist=Math.random()*R*0.7;
-  const x=CX+Math.cos(angle)*dist, y=CY+Math.sin(angle)*dist;
+  const x=spawnX!==undefined?spawnX:CX+(Math.random()-0.5)*R;
+  const y=spawnY!==undefined?spawnY:CY+(Math.random()-0.5)*R;
   const el=document.createElement('div');
   el.className='fighter';
   el.style.cssText=`left:${x}px;top:${y}px;transform:translate(-50%,-50%)`;
@@ -2485,6 +2533,7 @@ window.addEventListener('resize',()=>{
     AW=window.innerWidth-SIDEBAR_W; AH=window.innerHeight;
     document.getElementById('arena-wrap').style.width=AW+'px';
     document.getElementById('arena-wrap').style.height=AH+'px';
+    drawOctaBorder();
   }
 });
 </script>
