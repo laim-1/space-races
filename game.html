@@ -284,9 +284,9 @@ body {
 }
 #arena-clip {
   position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
+  top:0; left:0;
   overflow:hidden;
+  width:100%; height:100%;
 }
 #arena {
   position:absolute; inset:0;
@@ -1335,13 +1335,6 @@ function clampToOctagon(x, y, cx, cy, r) {
   }
   return best||{x,y};
 }
-function drawOctaBorder(cx,cy,r) {
-  // Octagon border is now handled by clip-path, no SVG needed
-}
-function updateOctagonClip() {
-  const clipPath=octaPoints.map((p,i)=>`${((p.x/AW)*100).toFixed(1)}% ${((p.y/AH)*100).toFixed(1)}%`).join(',');
-  document.getElementById('arena-clip').style.clipPath=`polygon(${clipPath})`;
-}
 // ============================================================
 // BATTLE START
 // ============================================================
@@ -1363,10 +1356,6 @@ function startBattle(fData) {
   arena.style.width=AW+'px'; arena.style.height=AH+'px';
   clip.style.left='0'; clip.style.top='0';
   clip.style.transform='none';
-  const CX=AW/2, CY=AH/2;
-  const R=Math.min(AW,AH)*0.46;
-  octaPoints=calcOctagon(CX,CY,R);
-  updateOctagonClip();
   buildSidebar(fData);
   fData.forEach(d=>{ const f=mkFighter(d); fighters.push(f); });
   lastT=performance.now();
@@ -2494,13 +2483,8 @@ buildCountSel();
 window.addEventListener('resize',()=>{
   if(document.getElementById('battle-screen').classList.contains('active')){
     AW=window.innerWidth-SIDEBAR_W; AH=window.innerHeight;
-    document.getElementById('arena-clip').style.width=AW+'px';
-    document.getElementById('arena-clip').style.height=AH+'px';
-    document.getElementById('arena').style.width=AW+'px';
-    document.getElementById('arena').style.height=AH+'px';
-    const CX=AW/2, CY=AH/2, R=Math.min(AW,AH)*0.46;
-    octaPoints=calcOctagon(CX,CY,R);
-    updateOctagonClip();
+    document.getElementById('arena-wrap').style.width=AW+'px';
+    document.getElementById('arena-wrap').style.height=AH+'px';
   }
 });
 </script>
