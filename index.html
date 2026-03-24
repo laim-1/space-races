@@ -381,9 +381,10 @@ body {
   overflow:hidden;
 }
 .fighter-body canvas {
-  width:64px; height:64px;
+  width:100%; height:100%;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  display:block;
 }
 .fighter-label {
   font-family:'Russo One',sans-serif;
@@ -1680,7 +1681,7 @@ function mkFighter(data, spawnX, spawnY) {
   bodyDiv.style.cssText=`background:${data.color}18;border-color:${data.color};box-shadow:0 0 12px ${data.color}66,0 2px 8px rgba(0,0,0,0.8)`;
   const spriteEl=document.createElement('canvas');
   spriteEl.width=64; spriteEl.height=64;
-  spriteEl.style.cssText='width:64px;height:64px;image-rendering:pixelated;display:block';
+  spriteEl.style.cssText='image-rendering:pixelated';
   spriteEl.getContext('2d').drawImage(renderSprite(arch, spriteColors, 1), 0, 0);
   bodyDiv.appendChild(spriteEl);
   el.innerHTML=`
