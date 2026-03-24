@@ -273,6 +273,37 @@ body {
 /* Hide on-fighter labels/bars */
 .fighter-label { display:none !important; }
 .hp-bar-wrap   { display:none !important; }
+/* ===== MOBILE ===== */
+@media (max-width: 700px) {
+  #battle-screen {
+    flex-direction:column !important;
+  }
+  #arena-wrap {
+    width:100vw !important;
+    height:calc(100vh - 90px) !important;
+    flex:none !important;
+  }
+  #battle-sidebar {
+    width:100vw !important; min-width:0 !important;
+    height:90px !important;
+    flex-direction:row !important;
+    border-left:none !important;
+    border-top:2px solid var(--border);
+    overflow-x:auto !important; overflow-y:hidden !important;
+    padding:0.3rem !important;
+    gap:0.3rem !important;
+  }
+  #sb-title { display:none !important; }
+  .sb-fighter {
+    min-width:100px; max-width:140px;
+    flex-shrink:0 !important;
+  }
+  .fighter-body {
+    width:26px !important; height:26px !important;
+    font-size:0.85rem !important;
+  }
+  .speech-bubble { font-size:0.35rem !important; }
+}
 /* Grid floor */
 #arena-wrap::before {
   content:'';position:absolute;inset:0;
@@ -1142,6 +1173,7 @@ function bIV(fn, ms) { const id = setInterval(fn, ms); battleTimers.push(id); re
 function clearBattleTimers() { battleTimers.forEach(id => { clearTimeout(id); clearInterval(id); }); battleTimers = []; }
 let octaPoints = [];
 const SIDEBAR_W = 220;
+function isMobile() { return window.innerWidth <= 700; }
 // ============================================================
 // SCREENS
 // ============================================================
@@ -1386,9 +1418,15 @@ function startBattle(fData) {
   if(rafId) cancelAnimationFrame(rafId);
   battleActive=true;
   const arenaWrap=document.getElementById('arena-wrap');
-  arenaWrap.style.width=(window.innerWidth-SIDEBAR_W)+'px';
-  arenaWrap.style.height=window.innerHeight+'px';
-  AW=window.innerWidth-SIDEBAR_W; AH=window.innerHeight;
+  const mobile=isMobile();
+  const SIDEBAR_H_MOBILE=90;
+  if(mobile){
+    AW=window.innerWidth; AH=window.innerHeight-SIDEBAR_H_MOBILE;
+  } else {
+    AW=window.innerWidth-SIDEBAR_W; AH=window.innerHeight;
+  }
+  arenaWrap.style.width=AW+'px';
+  arenaWrap.style.height=AH+'px';
   const clip=document.getElementById('arena-clip');
   clip.style.width=AW+'px'; clip.style.height=AH+'px';
   arena.style.width=AW+'px'; arena.style.height=AH+'px';
@@ -2530,7 +2568,12 @@ buildDebris();
 buildCountSel();
 window.addEventListener('resize',()=>{
   if(document.getElementById('battle-screen').classList.contains('active')){
-    AW=window.innerWidth-SIDEBAR_W; AH=window.innerHeight;
+    const mobile=isMobile();
+    if(mobile){
+      AW=window.innerWidth; AH=window.innerHeight-90;
+    } else {
+      AW=window.innerWidth-SIDEBAR_W; AH=window.innerHeight;
+    }
     document.getElementById('arena-wrap').style.width=AW+'px';
     document.getElementById('arena-wrap').style.height=AH+'px';
     drawOctaBorder();
