@@ -1337,6 +1337,7 @@ function clampToOctagon(x, y, cx, cy, r) {
 }
 function drawOctaBorder(cx,cy,r) {
   const svg=document.getElementById('octa-border');
+  console.log('drawOctaBorder: AW='+AW+' AH='+AH+' CX='+cx+' CY='+cy+' R='+r);
   svg.style.position='absolute';
   svg.style.left='0'; svg.style.top='0';
   svg.style.width=AW+'px'; svg.style.height=AH+'px';
