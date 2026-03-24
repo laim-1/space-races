@@ -979,10 +979,70 @@ body {
 ::-webkit-scrollbar-track { background:var(--grime); }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 ::-webkit-scrollbar-thumb:hover { background:var(--rust); }
+/* ===== SPRITE EDITOR ===== */
+#sprite-editor-modal {
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,0.88); overflow-y:auto;
+  flex-direction:column; align-items:center;
+  padding:1.5rem 1rem 3rem;
+}
+#sprite-editor-modal.open { display:flex; }
+.se-title {
+  font-family:'Russo One',sans-serif;
+  font-size:1.4rem; color:var(--gold);
+  letter-spacing:0.2em; margin-bottom:0.3rem;
+}
+.se-sub { font-size:0.65rem; color:#aaa; margin-bottom:1.2rem; text-align:center; }
+.se-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:0.8rem; width:100%; max-width:700px;
+}
+.se-card {
+  background:var(--grime); border:1px solid var(--border);
+  border-radius:8px; padding:0.6rem; display:flex;
+  flex-direction:column; align-items:center; gap:0.4rem;
+}
+.se-card-name {
+  font-family:'Russo One',sans-serif; font-size:0.55rem;
+  color:var(--silver); letter-spacing:0.1em; text-transform:uppercase;
+}
+.se-preview {
+  width:64px; height:64px; image-rendering:pixelated;
+  border-radius:6px; border:1px solid var(--border);
+  cursor:pointer; display:block;
+  background:#111;
+}
+.se-preview:hover { border-color:var(--gold); }
+.se-btns { display:flex; gap:0.3rem; }
+.se-upload-btn {
+  font-size:0.55rem; padding:0.2rem 0.45rem;
+  border-radius:4px; border:1px solid var(--border);
+  background:transparent; color:var(--silver); cursor:pointer;
+}
+.se-upload-btn:hover { border-color:var(--gold); color:var(--gold); }
+.se-reset-btn {
+  font-size:0.55rem; padding:0.2rem 0.45rem;
+  border-radius:4px; border:1px solid var(--border);
+  background:transparent; color:#888; cursor:pointer;
+}
+.se-reset-btn:hover { border-color:#cc4444; color:#cc4444; }
+.se-hint { font-size:0.5rem; color:#666; text-align:center; }
+.se-close-btn {
+  margin-top:1.2rem; font-size:0.75rem;
+  padding:0.4rem 1.2rem;
+}
 </style>
 </head>
 <body>
 <div id="bg-layer"></div>
+<!-- ===== SPRITE EDITOR MODAL ===== -->
+<div id="sprite-editor-modal">
+  <div class="se-title">🎨 CUSTOM SPRITES</div>
+  <div class="se-sub">Upload PNG pixel art for any archetype. Tap a preview to upload.<br>Images are saved locally in your browser.</div>
+  <div class="se-grid" id="se-grid"></div>
+  <button class="btn btn-ghost se-close-btn" onclick="closeSpriteEditor()">✕ Close</button>
+</div>
 <!-- ===== MAIN MENU ===== -->
 <div id="menu" class="screen active">
   <div class="menu-title">SPACE RACES</div>
@@ -993,6 +1053,7 @@ body {
     <button class="btn btn-primary"   onclick="openPick()">⚔ Pick Fighters</button>
     <button class="btn btn-secondary" onclick="randomizeBattle()">🎲 Randomize & Fight</button>
     <button class="btn btn-ghost"     onclick="openEncyc()">📖 Encyclopedia</button>
+    <button class="btn btn-ghost"     onclick="openSpriteEditor()">🎨 Custom Sprites</button>
   </div>
 </div>
 <!-- ===== PICK ===== -->
@@ -1116,6 +1177,37 @@ const SPC = {
 // ALIEN SPRITE SYSTEM — 64x64 canvas-drawn alien characters
 // ============================================================
 const SPRITE_CACHE = {};
+// Custom uploaded sprites: archetype → Image object (loaded from localStorage)
+const CUSTOM_SPRITES = {};
+const CUSTOM_SPRITE_LS_KEY = 'spaceRacesCustomSprites';
+function loadCustomSprites() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(CUSTOM_SPRITE_LS_KEY)||'{}');
+    Object.entries(stored).forEach(([arch, dataUrl]) => {
+      const img = new Image();
+      img.onload = () => { CUSTOM_SPRITES[arch] = img; delete SPRITE_CACHE[arch]; };
+      img.src = dataUrl;
+    });
+  } catch(e) {}
+}
+function saveCustomSpriteDataUrl(arch, dataUrl) {
+  try {
+    const stored = JSON.parse(localStorage.getItem(CUSTOM_SPRITE_LS_KEY)||'{}');
+    stored[arch] = dataUrl;
+    localStorage.setItem(CUSTOM_SPRITE_LS_KEY, JSON.stringify(stored));
+  } catch(e) { alert('Storage full — try a smaller image.'); }
+}
+function deleteCustomSprite(arch) {
+  delete CUSTOM_SPRITES[arch];
+  // clear cache entries for this archetype
+  Object.keys(SPRITE_CACHE).forEach(k => { if(k.startsWith(arch+'_')) delete SPRITE_CACHE[k]; });
+  try {
+    const stored = JSON.parse(localStorage.getItem(CUSTOM_SPRITE_LS_KEY)||'{}');
+    delete stored[arch];
+    localStorage.setItem(CUSTOM_SPRITE_LS_KEY, JSON.stringify(stored));
+  } catch(e) {}
+}
+loadCustomSprites();
 // per-archetype drawing functions; ctx is pre-flipped if needed
 const ALIEN_DRAW = {
   bruiser(ctx,c,dk,lt,ac){
@@ -1491,9 +1583,17 @@ function renderSprite(archetype, colors, facing) {
   const c=document.createElement('canvas');
   c.width=64; c.height=64;
   const ctx=c.getContext('2d');
-  if(facing<0){ctx.translate(64,0);ctx.scale(-1,1);}
-  const fn=ALIEN_DRAW[archetype]||ALIEN_DRAW.bruiser;
-  fn(ctx, colors[0]||'#888', colors[1]||'#555', colors[2]||'#aaa', colors[3]||'#00e5ff');
+  const custom=CUSTOM_SPRITES[archetype];
+  if(custom) {
+    // draw uploaded sprite, flipped if needed
+    if(facing<0){ctx.translate(64,0);ctx.scale(-1,1);}
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(custom,0,0,64,64);
+  } else {
+    if(facing<0){ctx.translate(64,0);ctx.scale(-1,1);}
+    const fn=ALIEN_DRAW[archetype]||ALIEN_DRAW.bruiser;
+    fn(ctx, colors[0]||'#888', colors[1]||'#555', colors[2]||'#aaa', colors[3]||'#00e5ff');
+  }
   SPRITE_CACHE[key]=c;
   return c;
 }
@@ -1753,6 +1853,95 @@ function filterEncyc(q) {
   });
 }
 function openEncyc() { buildEncyc(); showScreen('encyc-screen'); }
+// ============================================================
+// SPRITE EDITOR
+// ============================================================
+const ARCHETYPE_NAMES = ['bruiser','sniper','psychic','beast','engineer','assassin','tank','mage','insectoid','berserker','gunner','charger','blob'];
+function openSpriteEditor() {
+  buildSpriteEditor();
+  document.getElementById('sprite-editor-modal').classList.add('open');
+}
+function closeSpriteEditor() {
+  document.getElementById('sprite-editor-modal').classList.remove('open');
+}
+function buildSpriteEditor() {
+  const grid = document.getElementById('se-grid');
+  grid.innerHTML = '';
+  // dummy colors for preview
+  const previewColors = ['#66aacc','#335577','#88ccee','#00e5ff'];
+  ARCHETYPE_NAMES.forEach(arch => {
+    const card = document.createElement('div');
+    card.className = 'se-card';
+    card.id = 'se-card-'+arch;
+    // preview canvas
+    const cvs = document.createElement('canvas');
+    cvs.width = 64; cvs.height = 64;
+    cvs.className = 'se-preview';
+    cvs.title = 'Click to upload sprite for '+arch;
+    refreshSePreview(cvs, arch, previewColors);
+    cvs.onclick = () => triggerSpriteUpload(arch, previewColors);
+    // file input (hidden)
+    const inp = document.createElement('input');
+    inp.type='file'; inp.accept='image/*'; inp.style.display='none';
+    inp.id='se-inp-'+arch;
+    inp.onchange = e => handleSpriteUpload(e, arch, previewColors);
+    const name = document.createElement('div');
+    name.className = 'se-card-name'; name.textContent = arch;
+    const btns = document.createElement('div');
+    btns.className = 'se-btns';
+    const upBtn = document.createElement('button');
+    upBtn.className = 'se-upload-btn'; upBtn.textContent = '↑ Upload';
+    upBtn.onclick = () => triggerSpriteUpload(arch, previewColors);
+    const rstBtn = document.createElement('button');
+    rstBtn.className = 'se-reset-btn'; rstBtn.textContent = '✕';
+    rstBtn.title = 'Reset to generated';
+    rstBtn.onclick = () => { deleteCustomSprite(arch); refreshSePreview(cvs, arch, previewColors); };
+    btns.append(upBtn, rstBtn);
+    const hint = document.createElement('div');
+    hint.className = 'se-hint';
+    hint.textContent = CUSTOM_SPRITES[arch] ? '✓ custom' : 'generated';
+    hint.id = 'se-hint-'+arch;
+    card.append(name, cvs, inp, btns, hint);
+    grid.appendChild(card);
+  });
+}
+function triggerSpriteUpload(arch, previewColors) {
+  document.getElementById('se-inp-'+arch).click();
+}
+function handleSpriteUpload(e, arch, previewColors) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    const img = new Image();
+    img.onload = () => {
+      CUSTOM_SPRITES[arch] = img;
+      // clear cached canvases for this archetype
+      Object.keys(SPRITE_CACHE).forEach(k => { if(k.startsWith(arch+'_')) delete SPRITE_CACHE[k]; });
+      saveCustomSpriteDataUrl(arch, dataUrl);
+      // refresh preview
+      const cvs = document.querySelector('#se-card-'+arch+' canvas.se-preview');
+      if(cvs) refreshSePreview(cvs, arch, previewColors);
+      const hint = document.getElementById('se-hint-'+arch);
+      if(hint) hint.textContent = '✓ custom';
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = ''; // allow re-uploading same file
+}
+function refreshSePreview(cvs, arch, colors) {
+  // clear cache so we get fresh render
+  Object.keys(SPRITE_CACHE).forEach(k => { if(k.startsWith(arch+'_')) delete SPRITE_CACHE[k]; });
+  const src = renderSprite(arch, colors, 1);
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0,0,64,64);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(src, 0, 0);
+  const hint = document.getElementById('se-hint-'+arch);
+  if(hint) hint.textContent = CUSTOM_SPRITES[arch] ? '✓ custom' : 'generated';
+}
 // ============================================================
 // OCTAGON
 // ============================================================
