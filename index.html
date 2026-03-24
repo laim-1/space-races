@@ -43,8 +43,10 @@ body {
 #bg-layer {
   position:fixed; inset:0; pointer-events:none; z-index:0;
   background:
-    radial-gradient(ellipse at 30% 70%, #2a1a08 0%, #1a1208 50%),
-    radial-gradient(ellipse at 80% 20%, #1f1508 0%, transparent 50%);
+    radial-gradient(ellipse at 30% 70%, #1a0a2a 0%, #0a0812 50%),
+    radial-gradient(ellipse at 80% 20%, #0f0818 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(255,42,109,0.05) 0%, transparent 40%),
+    radial-gradient(circle at 20% 30%, rgba(0,229,255,0.04) 0%, transparent 40%);
 }
 /* FLOATING DEBRIS */
 .debris {
@@ -62,11 +64,20 @@ body {
 .menu-title {
   font-family: 'Russo One', sans-serif;
   font-size: clamp(2rem, 8vw, 4.5rem);
-  color: var(--accent);
+  color: var(--neon1);
   letter-spacing: 0.15em;
-  text-shadow: 3px 3px 0 #4a2800, 0 0 40px #8B4513aa;
+  text-shadow: 0 0 10px var(--neon1), 0 0 40px var(--neon1), 0 0 80px rgba(0,229,255,0.3), 3px 3px 0 #1a0a3a;
   margin-bottom: 0.1em;
   text-transform: uppercase;
+  animation: neon-flicker 4s ease-in-out infinite;
+}
+@keyframes neon-flicker {
+  0%,100% { opacity:1; }
+  92% { opacity:1; }
+  93% { opacity:0.7; }
+  94% { opacity:1; }
+  96% { opacity:0.8; }
+  97% { opacity:1; }
 }
 .menu-sub {
   font-size: clamp(0.55rem, 1.5vw, 0.75rem);
@@ -76,18 +87,18 @@ body {
   text-transform: uppercase;
 }
 .menu-card {
-  background: linear-gradient(160deg, #2a1e0e, #1e1508);
-  border: 2px solid var(--border);
+  background: linear-gradient(160deg, #18122a, #0e0a18);
+  border: 1px solid var(--neon1);
   border-radius: 8px;
   padding: clamp(1.2rem, 4vw, 2rem);
   width: min(90vw, 420px);
   display: flex; flex-direction:column; gap:0.85rem;
-  box-shadow: inset 0 1px 0 rgba(200,134,10,0.1), 0 8px 32px rgba(0,0,0,0.6);
+  box-shadow: 0 0 20px rgba(0,229,255,0.1), inset 0 1px 0 rgba(0,229,255,0.1), 0 8px 32px rgba(0,0,0,0.6);
   position:relative;
 }
 .menu-card::before {
   content:'';position:absolute;inset:0;border-radius:8px;
-  background: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.005) 20px, rgba(255,255,255,0.005) 21px);
+  background: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(0,229,255,0.01) 20px, rgba(0,229,255,0.01) 21px);
   pointer-events:none;
 }
 .count-label {
@@ -124,23 +135,23 @@ body {
   text-transform: uppercase;
 }
 .btn-primary {
-  background: linear-gradient(135deg, #b07010, #8B4513);
-  color: #ffe8b0; border: 1px solid #c8860a;
-  box-shadow: 0 3px 12px rgba(139,69,19,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  background: linear-gradient(135deg, #0a3a4a, #062a38);
+  color: var(--neon1); border: 1px solid var(--neon1);
+  box-shadow: 0 0 12px rgba(0,229,255,0.3), inset 0 1px 0 rgba(0,229,255,0.1);
 }
-.btn-primary:hover { transform:translateY(-1px); box-shadow:0 5px 18px rgba(139,69,19,0.7); }
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 0 20px rgba(0,229,255,0.5); }
 .btn-secondary {
-  background: linear-gradient(135deg, #7a3010, #5a1a04);
-  color: #ffb890; border: 1px solid #a04020;
-  box-shadow: 0 3px 12px rgba(90,26,4,0.5);
+  background: linear-gradient(135deg, #3a0a2a, #280818);
+  color: var(--neon2); border: 1px solid var(--neon2);
+  box-shadow: 0 0 12px rgba(255,42,109,0.3);
 }
-.btn-secondary:hover { transform:translateY(-1px); }
+.btn-secondary:hover { transform:translateY(-1px); box-shadow:0 0 20px rgba(255,42,109,0.5); }
 .btn-ghost {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--dim);
 }
-.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ghost:hover { border-color: var(--neon3); color: var(--neon3); }
 /* ===== PICK / ENCYC ===== */
 #pick-screen, #encyc-screen {
   padding: 1rem; gap: 0.8rem; overflow:hidden;
@@ -230,14 +241,14 @@ body {
 #arena-wrap {
   position:relative; flex:1; height:100vh; overflow:hidden;
   background:
-    radial-gradient(ellipse at 50% 50%, #241a0a 0%, #140e04 60%, #0a0804 100%);
+    radial-gradient(ellipse at 50% 50%, #1a0e28 0%, #0e0818 60%, #060410 100%);
 }
 /* Sidebar */
 #battle-sidebar {
   width:220px; min-width:220px;
   height:100vh;
-  background:rgba(16,10,2,0.97);
-  border-left:2px solid var(--border);
+  background:rgba(8,4,16,0.97);
+  border-left:1px solid var(--neon3);
   overflow-y:auto; overflow-x:hidden;
   display:flex; flex-direction:column;
   z-index:50; padding:0.5rem 0.4rem;
@@ -312,9 +323,11 @@ body {
 #arena-wrap::before {
   content:'';position:absolute;inset:0;
   background-image:
-    linear-gradient(rgba(90,70,30,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(90,70,30,0.08) 1px, transparent 1px);
-  background-size:50px 50px;
+    linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px),
+    linear-gradient(60deg, rgba(180,74,255,0.02) 1px, transparent 1px),
+    linear-gradient(-60deg, rgba(180,74,255,0.02) 1px, transparent 1px);
+  background-size:50px 50px, 50px 50px, 43px 50px, 43px 50px;
   pointer-events:none;
 }
 #arena-clip {
@@ -342,11 +355,11 @@ body {
 .hud-pill {
   font-family:'Russo One',sans-serif;
   font-size:clamp(0.55rem,1.8vw,0.75rem);
-  color:var(--accent);
-  background:rgba(20,14,4,0.85);
+  color:var(--neon1);
+  background:rgba(8,4,16,0.85);
   padding:0.25rem 0.7rem;
   border-radius:20px;
-  border:1px solid var(--border);
+  border:1px solid var(--neon1);
   letter-spacing:0.08em;
 }
 /* ===== FIGHTER ===== */
@@ -357,13 +370,20 @@ body {
   z-index:10;
 }
 .fighter-body {
-  width:34px; height:34px; border-radius:50%;
+  width:64px; height:64px; border-radius:8px;
   display:flex; align-items:center; justify-content:center;
-  font-size:1.15rem;
+  font-size:0;
   border:2px solid;
   position:relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  box-shadow: 0 0 12px rgba(0,229,255,0.3), 0 2px 8px rgba(0,0,0,0.8);
   transition: filter 0.1s;
+  image-rendering: pixelated;
+  overflow:hidden;
+}
+.fighter-body canvas {
+  width:64px; height:64px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 .fighter-label {
   font-family:'Russo One',sans-serif;
@@ -965,7 +985,7 @@ body {
 <!-- ===== MAIN MENU ===== -->
 <div id="menu" class="screen active">
   <div class="menu-title">SPACE RACES</div>
-  <div class="menu-sub">Junkyard Colosseum · Auto-Battler</div>
+  <div class="menu-sub">Underground Fight Pit · Place Your Bets</div>
   <div class="menu-card">
     <div class="count-label">Fighter Count</div>
     <div class="count-selector" id="count-sel"></div>
@@ -1091,6 +1111,166 @@ const SPC = {
   mind_spike:     {name:'Mind Spike',      dmg:[15,80],  range:290, cd:8,  type:'proj',      speed:240, animKey:'mindspike'},
   singularity:    {name:'Singularity',     dmg:[24,36],  range:160, cd:11, type:'singularity',animKey:'singularity'},
 };
+// ============================================================
+// PIXEL SPRITE SYSTEM — 64x64 full-body sprites
+// ============================================================
+const SPRITE_CACHE = {};
+const ARCHETYPES = {
+  bruiser: { // wide, bulky torso, thick arms, heavy legs
+    head:[[6,0,4,4]],torso:[[4,4,8,6]],
+    armL:[[1,5,3,5]],armR:[[12,5,3,5]],
+    legL:[[4,10,3,5]],legR:[[9,10,3,5]],
+    extra:[]
+  },
+  sniper: { // thin, tall, long arms, scope eye
+    head:[[6,0,4,3]],torso:[[5,3,6,5]],
+    armL:[[2,4,3,4]],armR:[[11,4,3,6]],
+    legL:[[5,8,2,6]],legR:[[9,8,2,6]],
+    extra:[[12,3,3,1]] // scope/rifle
+  },
+  psychic: { // floaty, big head, tendrils, no legs
+    head:[[5,0,6,5]],torso:[[6,5,4,4]],
+    armL:[[3,5,3,5]],armR:[[10,5,3,5]],
+    legL:[[5,9,2,5]],legR:[[9,9,2,5]],
+    extra:[[7,0,2,1]] // third eye
+  },
+  beast: { // hunched, claws, tail, digitigrade legs
+    head:[[6,1,5,3]],torso:[[5,4,6,5]],
+    armL:[[2,4,3,5]],armR:[[11,4,3,5]],
+    legL:[[4,9,3,5]],legR:[[9,9,3,5]],
+    extra:[[11,7,4,2]] // tail
+  },
+  engineer: { // boxy, mechanical, antenna
+    head:[[6,0,4,4]],torso:[[4,4,8,5]],
+    armL:[[1,5,3,4]],armR:[[12,5,3,4]],
+    legL:[[5,9,3,5]],legR:[[8,9,3,5]],
+    extra:[[7,0,1,1]] // antenna
+  },
+  assassin: { // hooded, sleek, thin, blades
+    head:[[5,0,5,4]],torso:[[5,4,5,4]],
+    armL:[[2,4,3,5]],armR:[[10,4,3,5]],
+    legL:[[5,8,2,6]],legR:[[8,8,2,6]],
+    extra:[[1,6,2,4]] // blade
+  },
+  tank: { // massive, heavy armor, small head, wide body
+    head:[[6,0,4,3]],torso:[[3,3,10,6]],
+    armL:[[0,4,3,5]],armR:[[13,4,3,5]],
+    legL:[[4,9,3,5]],legR:[[9,9,3,5]],
+    extra:[[4,3,8,1]] // shoulder plate
+  },
+  mage: { // robed, staff, flowing energy
+    head:[[6,0,4,4]],torso:[[5,4,6,5]],
+    armL:[[2,5,3,4]],armR:[[11,5,3,4]],
+    legL:[[5,9,3,5]],legR:[[8,9,3,5]],
+    extra:[[1,2,2,7]] // staff
+  },
+  insectoid: { // multiple limbs, antennae, compact
+    head:[[6,0,4,3]],torso:[[5,3,6,5]],
+    armL:[[2,3,3,3]],armR:[[11,3,3,3]],
+    legL:[[4,8,2,5]],legR:[[10,8,2,5]],
+    extra:[[3,5,2,4],[11,5,2,4],[6,0,1,2],[9,0,1,2]] // extra arms + antennae
+  },
+  berserker: { // wild, spiky, aggressive stance
+    head:[[6,0,4,4]],torso:[[4,4,8,5]],
+    armL:[[1,4,3,5]],armR:[[12,4,3,5]],
+    legL:[[4,9,3,5]],legR:[[9,9,3,5]],
+    extra:[[5,0,1,2],[10,0,1,2],[4,1,1,2],[11,1,1,2]] // spikes
+  },
+  gunner: { // medium build, big gun arm
+    head:[[6,0,4,4]],torso:[[5,4,6,5]],
+    armL:[[2,5,3,4]],armR:[[11,4,4,5]],
+    legL:[[5,9,3,5]],legR:[[8,9,3,5]],
+    extra:[[14,4,2,3]] // gun barrel
+  },
+  charger: { // streamlined, leaning forward, speed lines
+    head:[[7,0,4,3]],torso:[[5,3,6,5]],
+    armL:[[2,4,3,4]],armR:[[11,4,3,4]],
+    legL:[[4,8,3,6]],legR:[[9,8,3,6]],
+    extra:[[3,5,2,1],[2,6,2,1]] // speed trail
+  },
+  blob: { // amorphous, eyes, tendrils
+    head:[[5,1,6,4]],torso:[[4,5,8,5]],
+    armL:[[2,5,2,4]],armR:[[12,5,2,4]],
+    legL:[[4,10,3,4]],legR:[[9,10,3,4]],
+    extra:[[6,2,1,1],[9,2,1,1]] // eyes
+  },
+};
+function getArchetype(f) {
+  if(f.arch) return f.arch;
+  const d=f.desc.toLowerCase();
+  if(d.includes('bruiser')||d.includes('massive')||d.includes('rocky')||d.includes('crash')) return 'bruiser';
+  if(d.includes('sniper')||d.includes('beam')||d.includes('artillery')||d.includes('picks off')) return 'sniper';
+  if(d.includes('psychic')||d.includes('gravity mage')||d.includes('mind')||d.includes('void')||d.includes('bender')) return 'psychic';
+  if(d.includes('feral')||d.includes('beast')||d.includes('venom')||d.includes('fungal')||d.includes('leech')) return 'beast';
+  if(d.includes('engineer')||d.includes('turret')||d.includes('machine')||d.includes('fortress')) return 'engineer';
+  if(d.includes('shadow')||d.includes('ghost')||d.includes('mist')||d.includes('vanish')||d.includes('stealth')) return 'assassin';
+  if(d.includes('armored')||d.includes('tank')||d.includes('reflective')||d.includes('spike-covered')||d.includes('drain tank')) return 'tank';
+  if(d.includes('mage')||d.includes('priest')||d.includes('recovers')||d.includes('time')||d.includes('arc mage')) return 'mage';
+  if(d.includes('web')||d.includes('spider')||d.includes('insect')||d.includes('parasite')||d.includes('snare')) return 'insectoid';
+  if(d.includes('berserker')||d.includes('martyr')||d.includes('burns itself')||d.includes('rage')) return 'berserker';
+  if(d.includes('gunner')||d.includes('scatter')||d.includes('shooter')||d.includes('overdriv')) return 'gunner';
+  if(d.includes('charger')||d.includes('runner')||d.includes('fast')||d.includes('outpace')||d.includes('dash')) return 'charger';
+  if(d.includes('duplicat')||d.includes('clone')||d.includes('organism')) return 'blob';
+  return 'bruiser';
+}
+function renderSprite(archetype, colors, facing) {
+  const key=archetype+'_'+colors.join('_')+'_'+(facing<0?'L':'R');
+  if(SPRITE_CACHE[key]) return SPRITE_CACHE[key];
+  const c=document.createElement('canvas');
+  c.width=64; c.height=64;
+  const ctx=c.getContext('2d');
+  const arch=ARCHETYPES[archetype]||ARCHETYPES.bruiser;
+  const S=4; // scale factor (16x16 grid → 64x64)
+  const flip=facing<0;
+  const parts=[
+    {rects:arch.head, col:colors[0]||'#888'},       // head/skin
+    {rects:arch.torso, col:colors[1]||'#666'},       // torso/armor
+    {rects:arch.armL, col:colors[1]||'#666'},        // arms same as torso
+    {rects:arch.armR, col:colors[1]||'#666'},
+    {rects:arch.legL, col:colors[2]||'#555'},        // legs
+    {rects:arch.legR, col:colors[2]||'#555'},
+    {rects:arch.extra, col:colors[3]||colors[0]||'#aaa'}, // extras/weapons
+  ];
+  if(flip) ctx.translate(64,0), ctx.scale(-1,1);
+  parts.forEach(p=>{
+    ctx.fillStyle=p.col;
+    p.rects.forEach(r=>{
+      ctx.fillRect(r[0]*S, r[1]*S, r[2]*S, r[3]*S);
+      // pixel art shading - darker bottom edge
+      ctx.fillStyle=shadeColor(p.col,-30);
+      ctx.fillRect(r[0]*S, (r[1]+r[3]-1)*S, r[2]*S, S);
+      // lighter top edge
+      ctx.fillStyle=shadeColor(p.col,30);
+      ctx.fillRect(r[0]*S, r[1]*S, r[2]*S, S);
+      ctx.fillStyle=p.col;
+    });
+  });
+  // Eyes on head
+  const h=arch.head[0];
+  ctx.fillStyle='#fff';
+  ctx.fillRect((h[0]+1)*S, (h[1]+1)*S, S, S);
+  ctx.fillRect((h[0]+h[2]-2)*S, (h[1]+1)*S, S, S);
+  ctx.fillStyle='#000';
+  ctx.fillRect((h[0]+1)*S+1, (h[1]+1)*S+1, S-2, S-2);
+  ctx.fillRect((h[0]+h[2]-2)*S+1, (h[1]+1)*S+1, S-2, S-2);
+  SPRITE_CACHE[key]=c;
+  return c;
+}
+function shadeColor(col,amt) {
+  let r=parseInt(col.slice(1,3),16), g=parseInt(col.slice(3,5),16), b=parseInt(col.slice(5,7),16);
+  r=Math.max(0,Math.min(255,r+amt)); g=Math.max(0,Math.min(255,g+amt)); b=Math.max(0,Math.min(255,b+amt));
+  return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+function getSpriteColors(data) {
+  const base=data.color;
+  const r=parseInt(base.slice(1,3),16), g=parseInt(base.slice(3,5),16), b=parseInt(base.slice(5,7),16);
+  return [
+    base,                                               // head/skin
+    shadeColor(base,-40),                               // torso/armor (darker)
+    shadeColor(base,-70),                               // legs (darkest)
+    '#'+[Math.min(255,r+60),Math.min(255,g+60),Math.min(255,b+60)].map(v=>v.toString(16).padStart(2,'0')).join('') // weapon/extra (lighter)
+  ];
+}
 const FIGHTERS = [
   {name:'Krath',  desc:'Massive rocky bruiser from a high gravity moon',        hp:350,color:'#8B6030',emoji:'🪨',reg:'smash',       spc:'gravity_slam'},
   {name:'Vex',    desc:'Sneaky venom-based creature from a swamp planet',       hp:200,color:'#4a7a38',emoji:'🐍',reg:'spit',        spc:'spore_cloud'},
@@ -1476,16 +1656,24 @@ function mkFighter(data, spawnX, spawnY) {
   const el=document.createElement('div');
   el.className='fighter';
   el.style.cssText=`left:${x}px;top:${y}px;transform:translate(-50%,-50%)`;
+  const arch=getArchetype(data);
+  const spriteColors=getSpriteColors(data);
+  const spriteCanvas=renderSprite(arch, spriteColors, 1);
+  const bodyDiv=document.createElement('div');
+  bodyDiv.className='fighter-body';
+  bodyDiv.style.cssText=`background:${data.color}18;border-color:${data.color};box-shadow:0 0 12px ${data.color}66,0 2px 8px rgba(0,0,0,0.8)`;
+  const spriteEl=spriteCanvas.cloneNode(true);
+  spriteEl.style.cssText='width:64px;height:64px;image-rendering:pixelated';
+  bodyDiv.appendChild(spriteEl);
   el.innerHTML=`
-    <div class="fighter-body" style="background:${data.color}30;border-color:${data.color};box-shadow:0 2px 8px rgba(0,0,0,0.8)">
-      <span>${data.emoji}</span>
-    </div>
     <div class="fighter-label">${data.name}</div>
     <div class="hp-bar-wrap"><div class="hp-bar" style="width:100%;background:${data.color}"></div></div>
   `;
+  el.insertBefore(bodyDiv, el.firstChild);
   document.getElementById('arena').appendChild(el);
   return {
-    data, el, x, y,
+    data, el, x, y, arch, spriteColors,
+    facing:1,
     hp:data.hp, maxHp:data.hp, alive:true,
     vx:(Math.random()-0.5)*25, vy:(Math.random()-0.5)*25,
     wanderT:Math.random()*3,
@@ -1565,6 +1753,19 @@ function tickFighters(dt) {
       f.vx*=-0.6; f.vy*=-0.6;
     }
     f.el.style.left=f.x+'px'; f.el.style.top=f.y+'px';
+    // Update sprite facing
+    if(Math.abs(f.vx)>1){
+      const newFacing=f.vx<0?-1:1;
+      if(newFacing!==f.facing){
+        f.facing=newFacing;
+        const sc=f.el.querySelector('.fighter-body canvas');
+        if(sc){
+          const ns=renderSprite(f.arch,f.spriteColors,f.facing);
+          sc.width=ns.width; sc.height=ns.height;
+          sc.getContext('2d').drawImage(ns,0,0);
+        }
+      }
+    }
     // Flame trail
     if(f.trailActive>0){
       f.trailActive-=dt;
