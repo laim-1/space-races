@@ -1370,6 +1370,9 @@ function startBattle(fData) {
   fighters=[]; projectiles=[]; vortices=[]; clouds=[]; flameNodes=[]; singOrbs=[]; turretObjs=[]; elimination=[];
   if(rafId) cancelAnimationFrame(rafId);
   battleActive=true;
+  const arenaWrap=document.getElementById('arena-wrap');
+  arenaWrap.style.width=(window.innerWidth-SIDEBAR_W)+'px';
+  arenaWrap.style.height=window.innerHeight+'px';
   AW=window.innerWidth-SIDEBAR_W; AH=window.innerHeight;
   const clip=document.getElementById('arena-clip');
   clip.style.width=AW+'px'; clip.style.height=AH+'px';
