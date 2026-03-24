@@ -1338,6 +1338,10 @@ function clampToOctagon(x, y, cx, cy, r) {
 function drawOctaBorder(cx,cy,r) {
   // Octagon border is now handled by clip-path, no SVG needed
 }
+function updateOctagonClip() {
+  const clipPath=octaPoints.map((p,i)=>`${((p.x/AW)*100).toFixed(1)}% ${((p.y/AH)*100).toFixed(1)}%`).join(',');
+  document.getElementById('arena-clip').style.clipPath=`polygon(${clipPath})`;
+}
 // ============================================================
 // BATTLE START
 // ============================================================
@@ -1362,10 +1366,7 @@ function startBattle(fData) {
   const CX=AW/2, CY=AH/2;
   const R=Math.min(AW,AH)*0.46;
   octaPoints=calcOctagon(CX,CY,R);
-  drawOctaBorder(CX,CY,R);
-  // Apply octa clip to arena
-  const clipPath=octaPoints.map((p,i)=>`${((p.x/AW)*100).toFixed(1)}% ${((p.y/AH)*100).toFixed(1)}%`).join(',');
-  document.getElementById('arena-clip').style.clipPath=`polygon(${clipPath})`;
+  updateOctagonClip();
   buildSidebar(fData);
   fData.forEach(d=>{ const f=mkFighter(d); fighters.push(f); });
   lastT=performance.now();
@@ -2499,9 +2500,7 @@ window.addEventListener('resize',()=>{
     document.getElementById('arena').style.height=AH+'px';
     const CX=AW/2, CY=AH/2, R=Math.min(AW,AH)*0.46;
     octaPoints=calcOctagon(CX,CY,R);
-    const clipPath=octaPoints.map(p=>`${((p.x/AW)*100).toFixed(1)}% ${((p.y/AH)*100).toFixed(1)}%`).join(',');
-    document.getElementById('arena-clip').style.clipPath=`polygon(${clipPath})`;
-    drawOctaBorder(CX,CY,R);
+    updateOctagonClip();
   }
 });
 </script>
