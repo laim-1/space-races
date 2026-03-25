@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#0a0810"/>
+  <polygon points="64,10 100,32 114,72 100,112 64,118 28,112 14,72 28,32" fill="none" stroke="#00e5ff" stroke-width="3"/>
+  <circle cx="64" cy="64" r="20" fill="#ff3cac" opacity="0.8"/>
+  <text x="64" y="71" text-anchor="middle" fill="white" font-size="18" font-family="monospace">SR</text>
+</svg>

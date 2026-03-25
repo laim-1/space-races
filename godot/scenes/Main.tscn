@@ -1,0 +1,46 @@
+[gd_scene load_steps=7 format=3 uid="uid://main001"]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/CameraRig.gd" id="2_camrig"]
+[ext_resource type="PackedScene" uid="uid://arena001" path="res://scenes/Arena.tscn" id="3_arena"]
+[ext_resource type="PackedScene" uid="uid://hud001" path="res://scenes/ui/HUD.tscn" id="4_hud"]
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 1
+background_color = Color(0.027, 0.02, 0.043, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.12, 0.08, 0.18, 1)
+ambient_light_energy = 1.2
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.15
+glow_normalized = true
+
+[sub_resource type="CameraAttributesPractical" id="CamAttr_1"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+camera_attributes = SubResource("CamAttr_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 8, 0)
+light_color = Color(0.72, 0.62, 0.85, 1)
+light_energy = 1.4
+shadow_enabled = true
+
+[node name="Arena" parent="." instance=ExtResource("3_arena")]
+
+[node name="Fighters" type="Node3D" parent="."]
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("2_camrig")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16, 14)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.832, 0.555, 0, -0.555, 0.832, 0, 0, 0)
+fov = 52.0
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
