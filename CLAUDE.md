@@ -11,13 +11,13 @@
    git commit -m "feat: <describe change>"
    git push -u origin <branch>
    ```
-4. GitHub Pages will auto-deploy from the `docs/` folder on the `main` branch.
+4. GitHub Pages will auto-deploy from the `docs/` folder on the `master` branch.
 
 ## GitHub Pages setup (one-time)
 
 1. Go to **Settings → Pages** in the GitHub repo
 2. Under **Source**, choose **Deploy from a branch**
-3. Set branch to `main`, folder to `/docs`
+3. Set branch to `master`, folder to `/docs`
 4. Click **Save** — the site will be live at `https://<user>.github.io/space-races/`
 
 ## Project structure
