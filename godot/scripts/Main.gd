@@ -69,6 +69,13 @@ var fighter_scene : PackedScene = preload("res://scenes/Fighter.tscn")
 
 # ── Ready ─────────────────────────────────────────────────────────────────────
 func _ready() -> void:
+	game_state = GameState.MENU
+	if hud and hud.has_signal("start_pressed"):
+		hud.start_pressed.connect(_on_start_pressed)
+	if hud and hud.has_method("show_menu"):
+		hud.show_menu()
+
+func _on_start_pressed() -> void:
 	_spawn_fighters()
 	_start_battle()
 
@@ -148,6 +155,10 @@ func _on_took_damage(f: Fighter, amount: float, attacker) -> void:
 
 # ── Input ─────────────────────────────────────────────────────────────────────
 func _unhandled_input(event: InputEvent) -> void:
+	if game_state == GameState.RESULTS and event is InputEventKey and event.pressed and not event.echo:
+		Engine.time_scale = 1.0
+		get_tree().reload_current_scene()
+		return
 	if event.is_action_pressed("speed_1"):
 		Engine.time_scale = 1.0
 	elif event.is_action_pressed("speed_2"):

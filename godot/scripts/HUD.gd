@@ -2,6 +2,8 @@ extends CanvasLayer
 
 # ── HUD: health bars, kill feed, combo, speed controls, attack announce ───────
 
+signal start_pressed
+
 var fighters       : Array  = []
 var combo_count    : int    = 0
 var combo_attacker          = null
@@ -20,16 +22,91 @@ const COMBO_WINDOW := 2.5
 @onready var results_panel          : Panel         = $Control/ResultsPanel
 @onready var results_label          : Label         = $Control/ResultsPanel/Label
 
-var _bar_nodes : Dictionary = {}   # fighter → {bar, label}
+var _bar_nodes   : Dictionary = {}   # fighter → {bar, label}
+var _start_menu  : Control    = null
+
+# ── Ready ─────────────────────────────────────────────────────────────────────
+func _ready() -> void:
+	_create_start_menu()
+
+func _create_start_menu() -> void:
+	var panel := Panel.new()
+	panel.name              = "StartMenu"
+	panel.anchor_left       = 0.5
+	panel.anchor_top        = 0.5
+	panel.anchor_right      = 0.5
+	panel.anchor_bottom     = 0.5
+	panel.offset_left       = -240.0
+	panel.offset_top        = -170.0
+	panel.offset_right      = 240.0
+	panel.offset_bottom     = 170.0
+	panel.grow_horizontal   = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical     = Control.GROW_DIRECTION_BOTH
+
+	var vbox := VBoxContainer.new()
+	vbox.anchor_left    = 0.0
+	vbox.anchor_top     = 0.0
+	vbox.anchor_right   = 1.0
+	vbox.anchor_bottom  = 1.0
+	vbox.offset_left    = 20.0
+	vbox.offset_top     = 20.0
+	vbox.offset_right   = -20.0
+	vbox.offset_bottom  = -20.0
+	vbox.alignment      = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 18)
+
+	var title := Label.new()
+	title.text                    = "SPACE RACES"
+	title.horizontal_alignment    = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 52)
+	title.add_theme_color_override("font_color", Color(0.85, 0.55, 1.0))
+
+	var subtitle := Label.new()
+	subtitle.text                  = "4 fighters enter.  1 survives."
+	subtitle.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 17)
+	subtitle.add_theme_color_override("font_color", Color(0.7, 0.7, 0.9))
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 10)
+
+	var btn := Button.new()
+	btn.text = "▶   START BATTLE"
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.custom_minimum_size = Vector2(220, 52)
+	btn.pressed.connect(_on_start_pressed)
+
+	vbox.add_child(title)
+	vbox.add_child(subtitle)
+	vbox.add_child(spacer)
+	vbox.add_child(btn)
+	panel.add_child(vbox)
+	$Control.add_child(panel)
+	_start_menu = panel
+
+func show_menu() -> void:
+	if _start_menu:
+		_start_menu.visible = true
+	if alive_label:
+		alive_label.visible = false
+
+func _on_start_pressed() -> void:
+	if _start_menu:
+		_start_menu.visible = false
+	start_pressed.emit()
 
 # ── Init ──────────────────────────────────────────────────────────────────────
 func init_fighters(f_list: Array) -> void:
 	fighters = f_list
 	_build_health_bars()
+	if _start_menu:
+		_start_menu.visible = false
 	if results_panel:
 		results_panel.visible = false
 	if combo_display:
 		combo_display.modulate.a = 0.0
+	if alive_label:
+		alive_label.visible = true
 
 func _build_health_bars() -> void:
 	if not fighter_bars_container:
@@ -190,9 +267,9 @@ func show_results(winner: Fighter, all_fighters: Array) -> void:
 	results_panel.visible = true
 	var txt := ""
 	if winner:
-		txt = "🏆  %s  WINS!\n\nPress R to rematch" % winner.fighter_name
+		txt = "🏆  %s  WINS!\n\nPress SPACE or ENTER to rematch" % winner.fighter_name
 		results_label.add_theme_color_override("font_color", winner.fighter_color)
 	else:
-		txt = "NO SURVIVORS\n\nPress R to rematch"
+		txt = "NO SURVIVORS\n\nPress SPACE or ENTER to rematch"
 		results_label.add_theme_color_override("font_color", Color.WHITE)
 	results_label.text = txt
